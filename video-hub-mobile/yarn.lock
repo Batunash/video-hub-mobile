@@ -1300,6 +1300,11 @@
   dependencies:
     merge-options "^3.0.4"
 
+"@react-native-community/slider@5.0.1":
+  version "5.0.1"
+  resolved "https://registry.npmjs.org/@react-native-community/slider/-/slider-5.0.1.tgz"
+  integrity sha512-K3JRWkIW4wQ79YJ6+BPZzp1SamoikxfPRw7Yw4B4PElEQmqZFrmH9M5LxvIo460/3QSrZF/wCgi3qizJt7g/iw==
+
 "@react-native/assets-registry@0.81.4":
   version "0.81.4"
   resolved "https://registry.npmjs.org/@react-native/assets-registry/-/assets-registry-0.81.4.tgz"
@@ -1426,6 +1431,11 @@
   version "0.81.4"
   resolved "https://registry.npmjs.org/@react-native/normalize-colors/-/normalize-colors-0.81.4.tgz"
   integrity sha512-9nRRHO1H+tcFqjb9gAM105Urtgcanbta2tuqCVY0NATHeFPDEAB7gPyiLxCHKMi1NbhP6TH0kxgSWXKZl1cyRg==
+
+"@react-native/normalize-colors@0.81.5":
+  version "0.81.5"
+  resolved "https://registry.npmjs.org/@react-native/normalize-colors/-/normalize-colors-0.81.5.tgz"
+  integrity sha512-0HuJ8YtqlTVRXGZuGeBejLE04wSQsibpTI+RGOyVqxZvgtlLLC/Ssw0UmbHhT4lYMp2fhdtvKZSs5emWB1zR/g==
 
 "@react-native/virtualized-lists@0.81.4":
   version "0.81.4"
@@ -2458,12 +2468,31 @@ expo-modules-core@3.0.18:
   dependencies:
     invariant "^2.2.4"
 
+expo-navigation-bar@~5.0.9:
+  version "5.0.9"
+  resolved "https://registry.npmjs.org/expo-navigation-bar/-/expo-navigation-bar-5.0.9.tgz"
+  integrity sha512-xqry+MW12atuzYLtvck4fBCv0vqmo8q2Xap1ZeQRdjEm6m6Z35S6A09kRMY4NT7Y5Iaw+FI8YrUTNWSKvSXaDw==
+  dependencies:
+    "@react-native/normalize-colors" "0.81.5"
+    debug "^4.3.2"
+    react-native-is-edge-to-edge "^1.2.1"
+
+expo-screen-orientation@~9.0.7:
+  version "9.0.7"
+  resolved "https://registry.npmjs.org/expo-screen-orientation/-/expo-screen-orientation-9.0.7.tgz"
+  integrity sha512-UH/XlB9eMw+I2cyHSkXhAHRAPk83WyA3k5bst7GLu14wRuWiTch9fb6I7qEJK5CN6+XelcWxlBJymys6Fr/FKA==
+
 expo-status-bar@~3.0.8:
   version "3.0.8"
   resolved "https://registry.npmjs.org/expo-status-bar/-/expo-status-bar-3.0.8.tgz"
   integrity sha512-L248XKPhum7tvREoS1VfE0H6dPCaGtoUWzRsUv7hGKdiB4cus33Rc0sxkWkoQ77wE8stlnUlL5lvmT0oqZ3ZBw==
   dependencies:
     react-native-is-edge-to-edge "^1.2.1"
+
+expo-video@~3.0.11:
+  version "3.0.11"
+  resolved "https://registry.npmjs.org/expo-video/-/expo-video-3.0.11.tgz"
+  integrity sha512-k/xz8Ml/LekuD2U2LomML2mUISvkHzYDz3fXY8Au1fEaYVNTfTs7Gyfo1lvF6S1X7u3XutoAfew8e8e1ZUR2fg==
 
 expo@*, expo@~54.0.10:
   version "54.0.10"

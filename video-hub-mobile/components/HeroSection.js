@@ -3,7 +3,7 @@ import { View, Image,ImageBackground, StyleSheet,Dimensions,Text,TouchableOpacit
 import { Ionicons } from "@expo/vector-icons";
 const { width, height } = Dimensions.get("window");
 
-export default function HeroSection({onComponentPress}){
+export default function HeroSection({onComponentPress, onPlayPress}){
     const logosize = width*0.20;
     return(
         <TouchableOpacity style={[styles.container, { height: height * 0.33 }]} onPress={onComponentPress}>
@@ -12,7 +12,7 @@ export default function HeroSection({onComponentPress}){
                       <Image source={require('../assets/logo.png')} style={[styles.logo,{width: logosize, height: logosize}]} />
                   <View style={styles.content}>
                       <Text style={styles.headerText}>Deamon Slayer</Text>
-                      <TouchableOpacity style={styles.buttonPlay}>
+                      <TouchableOpacity style={styles.buttonPlay} onPress={onPlayPress}>
                           <Ionicons name="play-circle" size={20} color="#000000ff" />
                           <Text style={styles.buttonText}>Play</Text>
                       </TouchableOpacity>

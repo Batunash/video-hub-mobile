@@ -7,6 +7,7 @@ import SeeAllScreen from '../screens/AppScreens/SeeAllScreen'
 import DownloadsScreen from '../screens/AppScreens/DownloadsScreen';
 import SerieDetailScreen from '../screens/AppScreens/SerieDetailScreen';
 import CreateHorizontalViewScreen from '../screens/AppScreens/CreateHorizontalViewScreen'
+import VideoPlayer from '../screens/AppScreens/VideoPlayer';
 const Stack = createNativeStackNavigator();
 
 export default function AuthStack() {
@@ -23,7 +24,7 @@ export default function AuthStack() {
        <Stack.Screen name="DownloadsScreen" component={DownloadsScreen} />
        <Stack.Screen name="CreateHorizontalViewScreen" component={CreateHorizontalViewScreen} />
        <Stack.Screen name="SerieDetailScreen"component={SerieDetailScreen} />
-      
+       <Stack.Screen name="VideoPlayer" component={VideoPlayer} />
     </Stack.Navigator>
   );
 }

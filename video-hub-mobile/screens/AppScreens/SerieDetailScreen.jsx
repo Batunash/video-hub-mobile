@@ -6,9 +6,24 @@ import { useNavigation } from '@react-navigation/native';
 import Footer from '../../components/Footer';
 import EpisodeAccordion from '../../components/EpisodeAccordion';
 const { width, height } = Dimensions.get("window");
+
 export default function SerieDetailScreen(){
     const insets = useSafeAreaInsets();
     const navigation = useNavigation();
+    const handleDownload =()=>{
+      const downloadedSeries = [
+      { id: "1", name: "Naruto", year: 2002, genre: "Action" },
+      { id: "2", name: "Breaking Bad", year: 2008, genre: "Crime" },
+      ];
+
+      navigation.navigate("DownloadsScreen", {
+        headerTitle: "Downloads",
+        listData: downloadedSeries,
+      });
+    }
+    const handlePlay=()=>{
+      navigation.navigate('VideoPlayer');
+    }
     
     return(
         <View
@@ -26,11 +41,11 @@ export default function SerieDetailScreen(){
               A young boy joins the Demon Slayer Corps to avenge his family and save his sister.
              </Text>
               <View style={styles.buttonContainer}> 
-                <TouchableOpacity style={styles.buttonPlay}>
+                <TouchableOpacity style={styles.buttonPlay} onPress={handlePlay}>
                   <Ionicons name="play-circle" size={20} color="#000000ff" />
                   <Text style={styles.buttonText}>Play</Text>
                 </TouchableOpacity>
-                <TouchableOpacity style={styles.buttonDownload}>
+                <TouchableOpacity style={styles.buttonDownload} onPress={handleDownload}>
                   <Ionicons name="download" size={20} color="#000000ff" />
                   <Text style={styles.buttonText}>Download</Text>
                 </TouchableOpacity>

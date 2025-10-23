@@ -8,7 +8,7 @@ import Footer from "../../components/Footer";
 
 const { height ,width} = Dimensions.get("window");
 
-export default function BaseListScreen({ headerTitle, listData }) {
+export default function BaseListScreen({ headerTitle, listData,onSeriePress,onPlayPress}) {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const handleGoBack = () => {
@@ -33,7 +33,7 @@ export default function BaseListScreen({ headerTitle, listData }) {
                         data={listData}
                         keyExtractor={(item) => item.id?.toString() || item.toString()}
                         renderItem={({ item }) => (
-                          <Serie serie={item} />
+                          <Serie serie={item} onSeriePress={onSeriePress} onPlayPress={onPlayPress}/>
                         )}
                         showsVerticalScrollIndicator={false}
                         />

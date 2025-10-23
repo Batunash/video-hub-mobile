@@ -4,13 +4,13 @@ import { Ionicons } from "@expo/vector-icons";
 
 const { width ,height} = Dimensions.get("window");
 
-export default function Serie({ serie }) {
+export default function Serie({ serie,onSeriePress,onPlayPress}) {
   const cardHeight = width * 0.4; 
   const cardWidth = width - 32; // (16 soldan, 16 sağdan boşluk)
 
   return (
 
-    <View style={[styles.container, { height: cardHeight, width: cardWidth }]}>
+    <TouchableOpacity style={[styles.container, { height: cardHeight, width: cardWidth }]} onPress={onSeriePress}>
       <Image
         // Dışarıdan gelen resim bilgisini kullanıyoruz.
         source={{ uri: serie.imageUrl }} 
@@ -22,12 +22,12 @@ export default function Serie({ serie }) {
           <Text style={styles.name} numberOfLines={2}>{serie.name}</Text>
           <Text style={styles.metadata}>{`${serie.year} | ${serie.genre}`}</Text>
         </View>
-        <TouchableOpacity style={styles.buttonPlay}>
+        <TouchableOpacity style={styles.buttonPlay} onPress={onPlayPress}>
           <Ionicons name="play" size={18} color="black" />
           <Text style={styles.buttonText}>Play</Text>
         </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 }
 

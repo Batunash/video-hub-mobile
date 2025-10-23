@@ -29,6 +29,9 @@ export default function MainScreen() {
     listData: mockData,
   });
 };
+ const handlePlay=()=>{
+      navigation.navigate('VideoPlayer');
+    }
   const handleAdd =()=>{
     navigation.navigate('CreateHorizontalViewScreen');
   }
@@ -55,7 +58,7 @@ export default function MainScreen() {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
-      <HeroSection onComponentPress={handleSerieDetail} />
+      <HeroSection onComponentPress={handleSerieDetail} onPlayPress={handlePlay} />
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.scrollContent}

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UI
 import { Ionicons } from "@expo/vector-icons";
 import VideoCard from "./VideoCard"; // senin mevcut kart
 import { Dimensions } from "react-native";
-
+import { useNavigation } from '@react-navigation/native';
 const { height, width } = Dimensions.get("window");
 
 // Android için animasyon aktif et
@@ -12,6 +12,7 @@ if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental
 }
 
 export default function EpisodeGroup({ title, isExpanded, onToggle }) {
+   const navigation = useNavigation();
   // Şimdilik test için 3 tane sahte bölüm
   const fakeEpisodes = [
     { id: "1" },
@@ -24,6 +25,9 @@ export default function EpisodeGroup({ title, isExpanded, onToggle }) {
     LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
     onToggle();
   };
+  const handleVideoCard =()=>{
+    navigation.navigate('VideoPlayer');
+  }
 
   return (
     <View style={styles.container}>
@@ -45,7 +49,7 @@ export default function EpisodeGroup({ title, isExpanded, onToggle }) {
               <VideoCard
                 Height={height * 0.2}
                 isSelected={false}
-                onPress={() => console.log("Episode", ep.id)}
+                onPress={handleVideoCard}
               />
               <Text style={styles.epTitle}>Episode {ep.id}</Text>
             </View>
