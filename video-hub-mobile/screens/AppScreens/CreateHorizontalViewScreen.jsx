@@ -1,0 +1,183 @@
+import React, { useState } from "react";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  Text,
+  TextInput,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { Ionicons } from "@expo/vector-icons";
+import { useNavigation } from "@react-navigation/native";
+import VideoCard from "../../components/VideoCard";
+import Footer from "../../components/Footer";
+import { useLibraryStore } from "../../store/useLibraryStore";
+
+const { width, height } = Dimensions.get("window");
+
+export default function CreateHorizontalViewScreen() {
+  const navigation = useNavigation();
+  const insets = useSafeAreaInsets();
+  const { series, addList } = useLibraryStore();
+
+  const [categoryName, setCategoryName] = useState("");
+  const [selectedSeries, setSelectedSeries] = useState([]);
+
+  // 🔹 Dizi seçimini yönet
+  const handleSelectSerie = (serieId) => {
+    setSelectedSeries((current) =>
+      current.includes(serieId)
+        ? current.filter((id) => id !== serieId)
+        : [...current, serieId]
+    );
+  };
+
+  // 🔹 Liste oluştur
+  const handleCreateList = () => {
+    if (!categoryName.trim()) {
+      alert("Please enter a category name.");
+      return;
+    }
+    if (selectedSeries.length === 0) {
+      alert("Please select at least one series.");
+      return;
+    }
+
+    addList({ title: categoryName, seriesIds: selectedSeries });
+    navigation.goBack();
+  };
+
+  // 🔹 Geri dön
+  const handleGoBack = () => {
+    navigation.goBack();
+  };
+
+  return (
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+    >
+      {/* HEADER */}
+      <View style={styles.header}>
+        <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
+          <Ionicons name="arrow-back-outline" size={32} color="#ffffff" />
+        </TouchableOpacity>
+        <Text style={styles.headerTitle}>Create Category</Text>
+      </View>
+
+      {/* INPUT */}
+      <View style={styles.inputContainer}>
+        <Ionicons
+          name="create-outline"
+          size={20}
+          color="#aaa"
+          style={styles.icon}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Category Name"
+          placeholderTextColor="#aaa"
+          value={categoryName}
+          onChangeText={setCategoryName}
+          autoCapitalize="none"
+        />
+      </View>
+
+      {/* DİZİLER LİSTESİ */}
+      <ScrollView>
+        <View style={styles.cardContainer}>
+          {series.map((item) => (
+            <View key={item.id} style={styles.cardWrapper}>
+              <VideoCard
+                Height={height * 0.3}
+                data={item}
+                isSelected={selectedSeries.includes(item.id)}
+                onPress={() => handleSelectSerie(item.id)}
+              />
+            </View>
+          ))}
+        </View>
+      </ScrollView>
+
+      {/* CREATE BUTTON */}
+      <View style={styles.buttonContainer}>
+        <TouchableOpacity style={styles.createButton} onPress={handleCreateList}>
+          <Text style={styles.buttonText}>Create</Text>
+        </TouchableOpacity>
+      </View>
+
+      <Footer />
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#121212",
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 10,
+    height: 50,
+  },
+  backButton: {
+    padding: 5,
+  },
+  headerTitle: {
+    color: "#ffffff",
+    fontSize: 20,
+    fontWeight: "bold",
+    marginLeft: 15,
+  },
+  inputContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2a2a2a",
+    borderRadius: 10,
+    margin: 16,
+    paddingHorizontal: 10,
+  },
+  icon: {
+    marginRight: 10,
+  },
+  input: {
+    flex: 1,
+    height: 50,
+    color: "#ffffff",
+  },
+  cardContainer: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    paddingHorizontal: 8,
+  },
+  cardWrapper: {
+    width: "48%",
+    marginBottom: 16,
+  },
+  buttonContainer: {
+    width: "100%",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  createButton: {
+    width: "80%",
+    height: 50,
+    borderRadius: 10,
+    backgroundColor: "#C6A14A",
+    justifyContent: "center",
+    alignItems: "center",
+    shadowOpacity: 0.5,
+  },
+  buttonText: {
+    color: "#121212",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+});
