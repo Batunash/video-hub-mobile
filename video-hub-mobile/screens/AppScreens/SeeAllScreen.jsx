@@ -1,27 +1,30 @@
 import React from "react";
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from "@react-navigation/native";
+import { useLibraryStore } from "../../store/useLibraryStore";
 import BaseListScreen from "./BaseListScreen";
-import { useNavigation } from '@react-navigation/native';
+
 export default function SeeAllScreen() {
   const route = useRoute();
   const navigation = useNavigation();
-  const { headerTitle, listData } = route.params || {};
+  const { listId } = route.params || {};
 
-  const mySeries = listData || [
-    { id: "1", name: "The Witcher", year: 2022, genre: "Fantasy" },
-    { id: "2", name: "Arcane", year: 2021, genre: "Animation" },
-    { id: "3", name: "Cyberpunk: Edgerunners", year: 2022, genre: "Sci-Fi" },
-  ];
-   const handleSeriePress=()=>{
-    navigation.navigate('SerieDetailScreen');
-  }
-  const handlePlay=()=>{
-      navigation.navigate('VideoPlayer');
-    }
+  const { lists, series } = useLibraryStore();
+  const list = lists.find((l) => l.id === listId);
+  const mySeries =
+    list?.seriesIds
+      .map((id) => series.find((s) => s.id === id))
+      .filter(Boolean) || [];
+  const handleSeriePress = (serieId) => {
+    navigation.navigate("SerieDetailScreen", { serieId });
+  };
+
+  const handlePlay = (serieId, episodeId) => {
+    navigation.navigate("VideoPlayer", { serieId, episodeId });
+  };
 
   return (
     <BaseListScreen
-      headerTitle={headerTitle || "My List"}
+      headerTitle={list?.title || "My List"}
       listData={mySeries}
       onSeriePress={handleSeriePress}
       onPlayPress={handlePlay}

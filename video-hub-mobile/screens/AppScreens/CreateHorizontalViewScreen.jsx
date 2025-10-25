@@ -1,31 +1,55 @@
 import React, { useState } from "react";
-import { View, ScrollView, StyleSheet, Dimensions, TouchableOpacity, Text, TextInput } from "react-native";
+import {
+  View,
+  ScrollView,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  Text,
+  TextInput,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from '@react-navigation/native';
-import VideoCard from "../../components/VideoCard"; // VideoCard'ınızın doğru yolda olduğundan emin olun
-import Footer from "../../components/Footer"; // Footer'ınızın doğru yolda olduğundan emin olun
+import { useNavigation } from "@react-navigation/native";
+import VideoCard from "../../components/VideoCard";
+import Footer from "../../components/Footer";
+import { useLibraryStore } from "../../store/useLibraryStore";
 
 const { width, height } = Dimensions.get("window");
-const data = Array.from({ length: 12 }, (_, index) => ({
-  id: `video-${index + 1}`, // Her eleman için benzersiz bir ID
-}));
 
-export default function CreateHorizontalViewScreen({ headerTitle, listData }) {
+export default function CreateHorizontalViewScreen() {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const [categoryName, setCategoryName] = useState("");
-  const [selectedVideos, setSelectedVideos] = useState([]);
-  const handleSelectVideo = (videoId) => {
+  const { series, addList } = useLibraryStore();
 
-    if (selectedVideos.includes(videoId)) {
-      setSelectedVideos(currentSelected => currentSelected.filter(id => id !== videoId));
-    } 
-    // Eğer video seçili değilse, listeye ekle (seç)
-    else {
-      setSelectedVideos(currentSelected => [...currentSelected, videoId]);
-    }
+  const [categoryName, setCategoryName] = useState("");
+  const [selectedSeries, setSelectedSeries] = useState([]);
+
+  // 🔹 Dizi seçimini yönet
+  const handleSelectSerie = (serieId) => {
+    setSelectedSeries((current) =>
+      current.includes(serieId)
+        ? current.filter((id) => id !== serieId)
+        : [...current, serieId]
+    );
   };
+
+  // 🔹 Liste oluştur
+  const handleCreateList = () => {
+    if (!categoryName.trim()) {
+      alert("Please enter a category name.");
+      return;
+    }
+    if (selectedSeries.length === 0) {
+      alert("Please select at least one series.");
+      return;
+    }
+
+    addList({ title: categoryName, seriesIds: selectedSeries });
+    navigation.goBack();
+  };
+
+  // 🔹 Geri dön
   const handleGoBack = () => {
     navigation.goBack();
   };
@@ -37,6 +61,7 @@ export default function CreateHorizontalViewScreen({ headerTitle, listData }) {
         { paddingTop: insets.top, paddingBottom: insets.bottom },
       ]}
     >
+      {/* HEADER */}
       <View style={styles.header}>
         <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
           <Ionicons name="arrow-back-outline" size={32} color="#ffffff" />
@@ -44,8 +69,14 @@ export default function CreateHorizontalViewScreen({ headerTitle, listData }) {
         <Text style={styles.headerTitle}>Create Category</Text>
       </View>
 
+      {/* INPUT */}
       <View style={styles.inputContainer}>
-        <Ionicons name="create-outline" size={20} color="#aaa" style={styles.icon} />
+        <Ionicons
+          name="create-outline"
+          size={20}
+          color="#aaa"
+          style={styles.icon}
+        />
         <TextInput
           style={styles.input}
           placeholder="Category Name"
@@ -56,21 +87,29 @@ export default function CreateHorizontalViewScreen({ headerTitle, listData }) {
         />
       </View>
 
-      
+      {/* DİZİLER LİSTESİ */}
       <ScrollView>
         <View style={styles.cardContainer}>
-          {data.map((item, index) => (
-            <View key={index} style={styles.cardWrapper}>
-              <VideoCard Height={height * 0.3} isSelected={selectedVideos.includes(item.id)} onPress={() => handleSelectVideo(item.id) } />
+          {series.map((item) => (
+            <View key={item.id} style={styles.cardWrapper}>
+              <VideoCard
+                Height={height * 0.3}
+                data={item}
+                isSelected={selectedSeries.includes(item.id)}
+                onPress={() => handleSelectSerie(item.id)}
+              />
             </View>
           ))}
         </View>
       </ScrollView>
+
+      {/* CREATE BUTTON */}
       <View style={styles.buttonContainer}>
-        <TouchableOpacity style={styles.createButton}>
-            <Text style={styles.buttonText}>Create</Text>
+        <TouchableOpacity style={styles.createButton} onPress={handleCreateList}>
+          <Text style={styles.buttonText}>Create</Text>
         </TouchableOpacity>
       </View>
+
       <Footer />
     </View>
   );
@@ -82,8 +121,8 @@ const styles = StyleSheet.create({
     backgroundColor: "#121212",
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingHorizontal: 10,
     height: 50,
   },
@@ -91,15 +130,15 @@ const styles = StyleSheet.create({
     padding: 5,
   },
   headerTitle: {
-    color: '#ffffff',
+    color: "#ffffff",
     fontSize: 20,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginLeft: 15,
   },
   inputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#2a2a2a',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#2a2a2a",
     borderRadius: 10,
     margin: 16,
     paddingHorizontal: 10,
@@ -110,36 +149,35 @@ const styles = StyleSheet.create({
   input: {
     flex: 1,
     height: 50,
-    color: '#ffffff',
+    color: "#ffffff",
   },
   cardContainer: {
-    flexDirection: 'row',      
-    flexWrap: 'wrap',         
-    justifyContent: 'space-around',
-    paddingHorizontal: 8,     
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-around",
+    paddingHorizontal: 8,
   },
   cardWrapper: {
-    width: '48%', 
+    width: "48%",
     marginBottom: 16,
-  },buttonContainer: {
-    width: '100%', 
-    alignItems: 'center', 
-    paddingVertical: 10, 
   },
-
-  createButton:{
-    width: '80%', 
-    height: 50, 
+  buttonContainer: {
+    width: "100%",
+    alignItems: "center",
+    paddingVertical: 10,
+  },
+  createButton: {
+    width: "80%",
+    height: 50,
     borderRadius: 10,
-    backgroundColor: '#C6A14A',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#C6A14A",
+    justifyContent: "center",
+    alignItems: "center",
     shadowOpacity: 0.5,
   },
-
-  buttonText: { 
-    color: '#121212',
+  buttonText: {
+    color: "#121212",
     fontSize: 16,
-    fontWeight: 'bold',
-  }
+    fontWeight: "bold",
+  },
 });

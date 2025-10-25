@@ -1,38 +1,72 @@
-import React from "react";
-import { View, Text, FlatList, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import React, { useCallback } from "react";
+import {
+  View,
+  Text,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+} from "react-native";
 import VideoCard from "./VideoCard";
 
 const { width, height } = Dimensions.get("window");
 
-export default function HorizontalList({onSeeAll,onCardPress}) {
+export default function HorizontalList({ title, data = [], onSeeAll, onCardPress }) {
   const HorizontalListHeight = height * 0.33;
-  const data = [1, 2, 3, 4, 5];
-  const handleSeeAll = (e)=>{
-    e.stopPropagation();
-    if (onSeeAll) {
-      onSeeAll();
-    }
-  };
+
+  // Boş veri kontrolü
+  if (!Array.isArray(data) || data.length === 0) return null;
+
+  const handleSeeAll = useCallback(
+    (e) => {
+      e?.stopPropagation?.();
+      onSeeAll?.();
+    },
+    [onSeeAll]
+  );
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <VideoCard
+        Height={HorizontalListHeight}
+        data={item}
+        onPress={() => onCardPress?.(item)}
+      />
+    ),
+    [onCardPress, HorizontalListHeight]
+  );
+
   return (
-    <View style={[styles.container, { height: HorizontalListHeight }]}>
-      <View style={{flexDirection:"row",justifyContent:"space-between"}}>
-        <Text style={styles.title}>Popular Now</Text> 
-        <TouchableOpacity onPress={handleSeeAll}>
-          <Text style={styles.text}>See All</Text>
+    <View
+      style={[
+        styles.container,
+        { height: HorizontalListHeight, minHeight: 150 },
+      ]}
+    >
+      {/* Başlık satırı */}
+      <View style={styles.header}>
+        <Text style={styles.title} numberOfLines={1}>
+          {title}
+        </Text>
+        <TouchableOpacity
+          onPress={handleSeeAll}
+          activeOpacity={0.7}
+          accessibilityLabel={`See all series in ${title}`}
+          accessibilityRole="button"
+        >
+          <Text style={styles.seeAll}>See All</Text>
         </TouchableOpacity>
-        </View>
-      <View style={{ flex: 1, justifyContent: "center" }}>
-        <FlatList
-          data={data}
-          horizontal
-          keyExtractor={(item) => item.toString()}
-          renderItem={() => (
-            <VideoCard Height={HorizontalListHeight} 
-            onPress={onCardPress}/>
-          )}
-          showsHorizontalScrollIndicator={false}
-        />
       </View>
+
+      {/* Kart listesi */}
+      <FlatList
+        data={data}
+        horizontal
+        keyExtractor={(item, index) => String(item?.id ?? index)}
+        renderItem={renderItem}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.listContent}
+      />
     </View>
   );
 }
@@ -43,18 +77,26 @@ const styles = StyleSheet.create({
     backgroundColor: "#1A1A1A",
     paddingHorizontal: 10,
     paddingVertical: 5,
+    borderRadius: 8,
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginBottom: 8,
   },
   title: {
     color: "white",
     fontSize: width * 0.045,
     fontWeight: "bold",
-    marginBottom: 5,
+    flexShrink: 1,
   },
-  text: {
-    color: "green",
-    fontSize: width * 0.045,
-    textDecorationLine:"underline",
-    textDecorationColor: "green",
-    marginBottom: 5,
-  }
+  seeAll: {
+    color: "#C6A14A",
+    fontSize: width * 0.04,
+    textDecorationLine: "underline",
+  },
+  listContent: {
+    paddingRight: 10,
+  },
 });

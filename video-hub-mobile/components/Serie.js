@@ -1,78 +1,116 @@
 import React from "react";
-import { View, Image, StyleSheet, Dimensions, Text, TouchableOpacity } from "react-native";
+import {
+  View,
+  Image,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  FlatList,
+  Dimensions,
+} from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { useLibraryStore } from "../store/useLibraryStore";
 
-const { width ,height} = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
-export default function Serie({ serie,onSeriePress,onPlayPress}) {
-  const cardHeight = width * 0.4; 
-  const cardWidth = width - 32; // (16 soldan, 16 sağdan boşluk)
+export default function Serie({ serie, onSeriePress, onPlayPress, showDownloadedEpisodes }) {
+  const { toggleDownload } = useLibraryStore();
+
+  const handleDeleteEpisode = (episodeId) => {
+    toggleDownload(serie.id, episodeId);
+  };
 
   return (
+    <View style={styles.container}>
+      {/* Dizi kartı */}
+      <TouchableOpacity onPress={() => onSeriePress?.(serie.id)}>
+        <Image source={{ uri: serie.poster }} style={styles.image} />
+      </TouchableOpacity>
 
-    <TouchableOpacity style={[styles.container, { height: cardHeight, width: cardWidth }]} onPress={onSeriePress}>
-      <Image
-        // Dışarıdan gelen resim bilgisini kullanıyoruz.
-        source={{ uri: serie.imageUrl }} 
-        resizeMode="cover"
-        style={styles.image}
-      />
-      <View style={styles.infoContainer}>
-        <View>
-          <Text style={styles.name} numberOfLines={2}>{serie.name}</Text>
-          <Text style={styles.metadata}>{`${serie.year} | ${serie.genre}`}</Text>
-        </View>
-        <TouchableOpacity style={styles.buttonPlay} onPress={onPlayPress}>
-          <Ionicons name="play" size={18} color="black" />
-          <Text style={styles.buttonText}>Play</Text>
-        </TouchableOpacity>
+      <View style={styles.info}>
+        <Text style={styles.title}>{serie.title}</Text>
+        <Text style={styles.desc} numberOfLines={2}>
+          {serie.description || "No description"}
+        </Text>
       </View>
-    </TouchableOpacity>
+
+      {/* Eğer Downloads ekranındaysak */}
+      {showDownloadedEpisodes && serie.downloadedEpisodes && (
+        <FlatList
+          data={serie.downloadedEpisodes}
+          keyExtractor={(ep) => ep.id}
+          renderItem={({ item }) => (
+            <View style={styles.episodeRow}>
+              <Text style={styles.episodeTitle} numberOfLines={1}>
+                {item.title}
+              </Text>
+              <View style={styles.episodeActions}>
+                <TouchableOpacity
+                  onPress={() => onPlayPress?.(serie.id, item)}
+                >
+                  <Ionicons name="play" size={20} color="#C6A14A" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleDeleteEpisode(item.id)}
+                  style={{ marginLeft: 12 }}
+                >
+                  <Ionicons name="trash-outline" size={20} color="red" />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          style={styles.episodeList}
+        />
+      )}
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#1A1A1A", 
-    borderRadius: 12, 
-    flexDirection: "row",
+    backgroundColor: "#1A1A1A",
+    borderRadius: 10,
+    marginVertical: 10,
     overflow: "hidden",
-    marginHorizontal: 16, 
-    marginVertical: 8,
+    width: width * 0.9,
+    alignSelf: "center",
   },
   image: {
-    width: "35%", 
-    height: "100%",
+    width: "100%",
+    height: width * 0.5,
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
   },
-  infoContainer: {
-    flex: 1, 
-    padding: 12,
-    justifyContent: 'space-between', 
+  info: {
+    padding: 10,
   },
-  name: {
+  title: {
     color: "white",
     fontSize: width * 0.045,
     fontWeight: "bold",
   },
-  metadata: {
-    color: "#B3B3B3",
+  desc: {
+    color: "#ccc",
     fontSize: width * 0.035,
     marginTop: 4,
   },
-  buttonPlay:{
-    flexDirection: 'row',
-    width: width * 0.2,
-    height: height * 0.04,
-    backgroundColor: "#C6A14A",
-    borderRadius: width * 0.03,
-    alignItems: "center",
-    justifyContent: "center",
-
+  episodeList: {
+    paddingHorizontal: 10,
+    marginBottom: 10,
   },
-  buttonText:{
+  episodeRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    marginVertical: 6,
+  },
+  episodeTitle: {
     color: "white",
-    fontWeight: "bold",
-    marginLeft: 5,
-    fontSize: width * 0.04, 
+    fontSize: width * 0.035,
+    flexShrink: 1,
+  },
+  episodeActions: {
+    flexDirection: "row",
+    alignItems: "center",
   },
 });

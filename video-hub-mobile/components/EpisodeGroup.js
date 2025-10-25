@@ -1,96 +1,89 @@
 import React from "react";
-import { View, Text, TouchableOpacity, StyleSheet, LayoutAnimation, Platform, UIManager } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import VideoCard from "./VideoCard"; // senin mevcut kart
-import { Dimensions } from "react-native";
-import { useNavigation } from '@react-navigation/native';
-const { height, width } = Dimensions.get("window");
 
-// Android için animasyon aktif et
-if (Platform.OS === "android" && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
-
-export default function EpisodeGroup({ title, isExpanded, onToggle }) {
-   const navigation = useNavigation();
-  // Şimdilik test için 3 tane sahte bölüm
-  const fakeEpisodes = [
-    { id: "1" },
-    { id: "2" },
-    { id: "3" },
-    { id: "4" },
-  ];
-
-  const handlePress = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
-    onToggle();
-  };
-  const handleVideoCard =()=>{
-    navigation.navigate('VideoPlayer');
-  }
-
+export default function EpisodeGroup({ 
+  title, 
+  episodes, 
+  isExpanded, 
+  onToggle, 
+  onDownload, 
+  onPlay, 
+  serieId 
+}) {
   return (
     <View style={styles.container}>
-      {/* Başlık kısmı */}
-      <TouchableOpacity style={styles.header} onPress={handlePress}>
+      {/* Season Header */}
+      <TouchableOpacity onPress={onToggle} style={styles.headerRow}>
         <Text style={styles.title}>{title}</Text>
-        <Ionicons
-          name={isExpanded ? "chevron-up" : "chevron-down"}
-          size={22}
-          color="#C6A14A"
+        <Ionicons 
+          name={isExpanded ? "chevron-up" : "chevron-down"} 
+          size={20} 
+          color="white" 
         />
       </TouchableOpacity>
 
-      {/* Bölümler */}
-      {isExpanded && (
-        <View style={styles.episodeGrid}>
-          {fakeEpisodes.map((ep) => (
-            <View key={ep.id} style={styles.cardWrapper}>
-              <VideoCard
-                Height={height * 0.2}
-                isSelected={false}
-                onPress={handleVideoCard}
-              />
-              <Text style={styles.epTitle}>Episode {ep.id}</Text>
+      {/* Episode List */}
+      {isExpanded &&
+        episodes.map((episode) => (
+          <View key={episode.id} style={styles.episodeRow}>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.episodeTitle}>{episode.title}</Text>
+              <Text style={styles.duration}>{episode.duration}</Text>
             </View>
-          ))}
-        </View>
-      )}
+
+            {/* Play */}
+            <TouchableOpacity onPress={() => onPlay(serieId, episode.id)}>
+              <Ionicons name="play-circle" size={24} color="#C6A14A" />
+            </TouchableOpacity>
+
+            {/* Download */}
+            <TouchableOpacity onPress={() => onDownload(serieId, episode.id)}>
+              <Ionicons
+                name={
+                  episode.downloaded ? "checkmark-circle" : "download-outline"
+                }
+                size={24}
+                color={episode.downloaded ? "#4CAF50" : "#C6A14A"}
+              />
+            </TouchableOpacity>
+          </View>
+        ))}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
+    backgroundColor: "#1A1A1A",
     marginBottom: 10,
+    borderRadius: 10,
+    padding: 10,
   },
-  header: {
+  headerRow: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    backgroundColor: "#1A1A1A",
-    padding: 10,
-    borderRadius: 8,
   },
   title: {
-    color: "#C6A14A",
+    color: "white",
+    fontSize: 16,
     fontWeight: "bold",
-    fontSize: width * 0.04,
   },
-  episodeGrid: {
+  episodeRow: {
     flexDirection: "row",
-    flexWrap: "wrap",
+    alignItems: "center",
     justifyContent: "space-between",
-    marginTop: 10,
+    borderBottomWidth: 0.5,
+    borderBottomColor: "#333",
+    paddingVertical: 8,
   },
-  cardWrapper: {
-    width: "48%",
-    marginBottom: 12,
+  episodeTitle: {
+    color: "#fff",
+    fontSize: 14,
   },
-  epTitle: {
-    color: "#ccc",
-    textAlign: "center",
-    fontSize: width * 0.035,
-    marginTop: 5,
+  duration: {
+    color: "#999",
+    fontSize: 12,
   },
 });

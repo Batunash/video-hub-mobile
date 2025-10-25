@@ -2,15 +2,8 @@ import React, { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import EpisodeGroup from "./EpisodeGroup";
 
-export default function EpisodeAccordion() {
+export default function EpisodeAccordion({ seasons, serieId, onDownload, onPlay }) {
   const [expandedId, setExpandedId] = useState(null);
-
-  // Şimdilik sahte data — sadece başlıklar
-  const groups = [
-    { id: 1, title: "Season 1" },
-    { id: 2, title: "Season 2" },
-    { id: 3, title: "Season 3" },
-  ];
 
   const handleToggle = (id) => {
     setExpandedId(expandedId === id ? null : id);
@@ -19,12 +12,16 @@ export default function EpisodeAccordion() {
   return (
     <View style={styles.container}>
       <Text style={styles.header}>Episodes</Text>
-      {groups.map((group) => (
+      {seasons.map((season) => (
         <EpisodeGroup
-          key={group.id}
-          title={group.title}
-          isExpanded={expandedId === group.id}
-          onToggle={() => handleToggle(group.id)}
+          key={season.id}
+          serieId={serieId}
+          title={season.title}
+          episodes={season.episodes}
+          isExpanded={expandedId === season.id}
+          onToggle={() => handleToggle(season.id)}
+          onDownload={onDownload} // ✅ callback prop olarak gönder
+          onPlay={onPlay}
         />
       ))}
     </View>

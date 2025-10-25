@@ -1,52 +1,61 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, Platform } from 'react-native';
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { VideoView, useVideoPlayer } from 'expo-video';
 import * as ScreenOrientation from 'expo-screen-orientation';
 import * as NavigationBar from 'expo-navigation-bar';
 import { StatusBar } from 'expo-status-bar';
+import { useRoute } from '@react-navigation/native';
+import { useLibraryStore } from '../../store/useLibraryStore';
+
+const FALLBACK_URI =
+  'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';
 
 export default function VideoScreen() {
   const insets = useSafeAreaInsets();
+  const route = useRoute();
+  const { serieId, episodeId, videoUri } = route.params;
+  const { markProgress, markRecentlyWatched } = useLibraryStore();
 
-  const player = useVideoPlayer(
-    'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
-    (player) => {
-      player.loop = false;
-      player.play();
-    }
-  );
+  const player = useVideoPlayer(videoUri || FALLBACK_URI, (player) => {
+    player.loop = false;
+    player.play();
+    player.timeUpdateEventInterval = 1;
+  });
 
   useEffect(() => {
-    let isMounted = true;
+    if (!player) return;
+    const sub = player.addListener('timeUpdate', ({ currentTime, duration }) => {
+      if (!duration) return;
+      const progress = currentTime / duration;
+      markProgress(serieId, episodeId, progress);
+    });
+    const endSub = player.addListener('ended', () => {
+      markProgress(serieId, episodeId, 1);
+      markRecentlyWatched({ serieId, episodeId });
+    });
+    return () => {
+      sub?.remove?.();
+      endSub?.remove?.();
+    };
+  }, [player, serieId, episodeId]);
 
-    async function setup() {
-      try {
-        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-        await NavigationBar.setVisibilityAsync("hidden");
+  useEffect(() => {
+    (async () => {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+      if (Platform.OS === 'android') {
+        await NavigationBar.setVisibilityAsync('hidden');
         await NavigationBar.setBehaviorAsync('overlay-swipe');
-      } catch (e) {
-        console.log("setup error:", e);
       }
-    }
-
-    setup();
+    })();
 
     return () => {
-      isMounted = false;
       (async () => {
-        try {
-          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
-          await NavigationBar.setVisibilityAsync("visible");
-          if (player && player.release && isMounted) {
-            await player.release();
-          } else if (player?.release) {
-            // Eğer zaten unmounted olmuşsa sessizce atla
-            try { await player.release(); } catch {}
-          }
-        } catch (e) {
-          console.log("cleanup error:", e);
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT);
+        if (Platform.OS === 'android') {
+          await NavigationBar.setVisibilityAsync('visible');
         }
+        await player?.release?.();
       })();
     };
   }, []);
@@ -59,32 +68,24 @@ export default function VideoScreen() {
       ]}
     >
       <StatusBar hidden />
-    <VideoView
-  style={{
-    flex: 1,
-    width: '90%',
-    height: '100%',
-    alignSelf: 'center',
-    borderRadius: 12, // köşeler yumuşasın istiyorsan
-    overflow: 'hidden',
-  }}
-  player={player}
-  allowsFullscreen
-  contentFit="cover"
-/>
-
+      <VideoView
+        style={styles.video}
+        player={player}
+        allowsFullscreen
+        contentFit="cover"
+      />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: 'black',
-  },
+  container: { flex: 1, backgroundColor: 'black' },
   video: {
     flex: 1,
-    width: '100%',
+    width: '90%',
     height: '100%',
+    alignSelf: 'center',
+    borderRadius: 12,
+    overflow: 'hidden',
   },
 });

@@ -1,48 +1,94 @@
-import React, { useState } from "react";
-import { View, FlatList, StyleSheet, Dimensions,TouchableOpacity,Text } from "react-native";
+import React, { useCallback } from "react";
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  Dimensions,
+  TouchableOpacity,
+  Text,
+  useWindowDimensions
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation } from "@react-navigation/native";
 import Serie from "../../components/Serie";
 import Footer from "../../components/Footer";
 
-const { height ,width} = Dimensions.get("window");
+const { width } = Dimensions.get("window");
 
-export default function BaseListScreen({ headerTitle, listData,onSeriePress,onPlayPress}) {
+export default function BaseListScreen({
+  headerTitle = "My List",
+  listData = [],
+  onSeriePress,
+  onPlayPress,
+  showDownloadedEpisodes = false,
+}) {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
-  const handleGoBack = () => {
-    navigation.goBack();
-    console.log("Geri butonuna basıldı!");
-  };
-    return(
-        <View
-              style={[
-                styles.container,
-                { paddingTop: insets.top, paddingBottom: insets.bottom },
-              ]}
-            >
-            <View style={styles.top}>
-                <TouchableOpacity onPress={handleGoBack} style={styles.backButton}>
-                    <Ionicons name="arrow-back-outline" size={32} color="#ffffff" />
-                </TouchableOpacity>
-                <Text style={styles.header}>{headerTitle}</Text>
-             </View>
-            <View style={{ flex: 1, justifyContent: "center" }}>
-                <FlatList
-                        data={listData}
-                        keyExtractor={(item) => item.id?.toString() || item.toString()}
-                        renderItem={({ item }) => (
-                          <Serie serie={item} onSeriePress={onSeriePress} onPlayPress={onPlayPress}/>
-                        )}
-                        showsVerticalScrollIndicator={false}
-                        />
-            </View>
-            <Footer />
-        </View>
-    )
 
+  const handleGoBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
+
+  const renderEmpty = useCallback(() => (
+    <View style={styles.emptyContainer}>
+      <Text style={styles.emptyText}>No series found.</Text>
+      <Text style={styles.emptySub}>Try adding or downloading one.</Text>
+    </View>
+  ), []);
+
+  const renderItem = useCallback(
+    ({ item }) => (
+      <Serie
+        serie={item}
+        onSeriePress={() => onSeriePress?.(item.id)}
+        onPlayPress={onPlayPress}
+        showDownloadedEpisodes={showDownloadedEpisodes}
+      />
+    ),
+    [onSeriePress, onPlayPress, showDownloadedEpisodes]
+  );
+
+  return (
+    <View
+      style={[
+        styles.container,
+        { paddingTop: insets.top, paddingBottom: insets.bottom },
+      ]}
+    >
+      {/* Üst başlık */}
+      <View style={styles.top}>
+        <TouchableOpacity
+          onPress={handleGoBack}
+          style={styles.backButton}
+          accessibilityLabel="Go back to previous screen"
+          accessibilityRole="button"
+          activeOpacity={0.7}
+        >
+          <Ionicons name="arrow-back-outline" size={32} color="#ffffff" />
+        </TouchableOpacity>
+        <Text style={styles.header} numberOfLines={1}>
+          {headerTitle}
+        </Text>
+      </View>
+
+      {/* Liste */}
+      <FlatList
+        data={listData}
+        keyExtractor={(item, index) => String(item?.id ?? index)}
+        renderItem={renderItem}
+        showsVerticalScrollIndicator={false}
+        ListEmptyComponent={renderEmpty}
+        contentContainerStyle={
+          listData.length === 0 && { flexGrow: 1, justifyContent: "center" }
+        }
+      />
+
+      <Footer />
+    </View>
+  );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -50,18 +96,33 @@ const styles = StyleSheet.create({
   },
   top: {
     flexDirection: "row",
-    alignItems: "center", 
-    paddingHorizontal: 16, 
+    alignItems: "center",
+    paddingHorizontal: 16,
     paddingVertical: 10,
   },
   header: {
     color: "white",
-    fontSize: width * 0.07, 
+    fontSize: width * 0.07,
     fontWeight: "bold",
-    marginLeft: 16, 
+    marginLeft: 16,
+    flexShrink: 1,
   },
   backButton: {
-    padding: 5, 
+    padding: 5,
   },
-  
+  emptyContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  emptyText: {
+    color: "#aaa",
+    fontSize: width * 0.045,
+    fontWeight: "bold",
+  },
+  emptySub: {
+    color: "#777",
+    fontSize: width * 0.04,
+    marginTop: 6,
+  },
 });

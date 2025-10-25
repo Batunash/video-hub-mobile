@@ -1,27 +1,30 @@
 import React from "react";
-import { View, Image, StyleSheet, Dimensions, TouchableOpacity } from "react-native";
+import { View, Image, StyleSheet, Dimensions, TouchableOpacity, Text } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-const { width } = Dimensions.get("window");
 
-export default function VideoCard({ Height,isSelected,onPress }) {
+const { width, height } = Dimensions.get("window");
+
+export default function VideoCard({ Height, isSelected, onPress, data }) {
   const cardHeight = Height * 0.66;
-  const cardWidth = width * 0.35; // orantılı genişlik
+  const cardWidth = width * 0.35;
 
   return (
-    <TouchableOpacity style={[styles.container, { height: cardHeight, width: cardWidth }]} onPress={onPress}>
+    <TouchableOpacity
+      style={[styles.container, { height: cardHeight, width: cardWidth }]}
+      onPress={onPress}
+    >
+      {/* 🎬 Dinamik poster */}
       <Image
-        source={require("../assets/logo.png")}
+        source={{ uri: data?.poster }}
         resizeMode="cover"
         style={styles.image}
       />
+      {/* ✅ Seçim overlay (isteğe bağlı) */}
       {isSelected && (
         <>
-          {/* Seçildiğinde kartın üzerine hafif bir karartma efekti ekleyelim */}
           <View style={styles.overlay} />
-          
-          {/* Tik ikonu ve konumlandırması */}
           <View style={styles.tickContainer}>
-            <Ionicons name="checkmark-circle" size={32} color="#4CAF50" />
+            <Ionicons name="checkmark-circle" size={28} color="#C6A14A" />
           </View>
         </>
       )}
@@ -38,16 +41,18 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: "100%",
-  },tickContainer: {
-    position: 'absolute',
+    height: "85%",
+    borderTopLeftRadius: 10,
+    borderTopRightRadius: 10,
+  },
+  tickContainer: {
+    position: "absolute",
     top: 8,
     right: 8,
   },
-  // Seçildiğinde kartı karartmak için kullanılan stil
   overlay: {
-    ...StyleSheet.absoluteFillObject, // View'ın tüm alanı kaplamasını sağlar
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: "rgba(0,0,0,0.4)",
     borderRadius: 10,
   },
 });

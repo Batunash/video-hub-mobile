@@ -1,28 +1,45 @@
 import React from "react";
-import { useRoute } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import BaseListScreen from "./BaseListScreen";
-import { useNavigation } from '@react-navigation/native';
+import { useLibraryStore } from "../../store/useLibraryStore";
+
 export default function DownloadsScreen() {
   const navigation = useNavigation();
-  const route = useRoute();
-  const { headerTitle, listData } = route.params || {};
-  const downloadedSeries = listData || [
-    { id: "1", name: "Breaking Bad", year: 2008, genre: "Crime" },
-    { id: "2", name: "Naruto", year: 2002, genre: "Action" },
-    { id: "3", name: "Peaky Blinders", year: 2013, genre: "Drama" },
-  ];
-  const handleSeriePress=()=>{
-    navigation.navigate('SerieDetailScreen');
-  }
-  const handlePlay=()=>{
-      navigation.navigate('VideoPlayer');
-    }
+  const { downloads, series } = useLibraryStore();
+  const grouped = downloads.reduce((acc, d) => {
+    if (!acc[d.serieId]) acc[d.serieId] = [];
+    acc[d.serieId].push(d.episodeId);
+    return acc;
+  }, {});
+  const downloadedSeries = Object.keys(grouped)
+    .map((serieId) => {
+      const serie = series.find((s) => String(s.id) === String(serieId));
+      if (!serie) return null;
+      const episodes = serie.seasons
+        .flatMap((s) => s.episodes)
+        .filter((ep) => grouped[serieId].includes(String(ep.id)))
+      return { ...serie, downloadedEpisodes: episodes };
+    })
+    .filter(Boolean);
+  const handleSeriePress = (serieId) => {
+    navigation.navigate("SerieDetailScreen", { serieId });
+  };
+  const handlePlay = (serieId, episode) => {
+    navigation.navigate("VideoPlayer", {
+      serieId,
+      episodeId: episode.id,
+      title: episode.title,
+      videoUri: episode.videoUri || "https://example.com/sample.mp4",
+    });
+  };
+
   return (
     <BaseListScreen
-      headerTitle={headerTitle || "Downloads"}
+      headerTitle="Downloads"
       listData={downloadedSeries}
       onSeriePress={handleSeriePress}
       onPlayPress={handlePlay}
+      showDownloadedEpisodes
     />
   );
 }
