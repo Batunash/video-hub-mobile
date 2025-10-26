@@ -18,8 +18,13 @@ export default function SeeAllScreen() {
     navigation.navigate("SerieDetailScreen", { serieId });
   };
 
-  const handlePlay = (serieId, episodeId) => {
-    navigation.navigate("VideoPlayer", { serieId, episodeId });
+ const handlePlay = (serieId, episode) => {
+    navigation.navigate("VideoPlayer", {
+      serieId,
+      seasonId: episode.seasonId,  // 💥 backend için gerekli
+      episodeId: episode.id,
+      title: episode.title,
+    });
   };
 
   return (

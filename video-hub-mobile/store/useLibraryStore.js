@@ -1,39 +1,51 @@
-import { create } from 'zustand'
-import { persist, createJSONStorage } from 'zustand/middleware'
-import AsyncStorage from '@react-native-async-storage/async-storage'
-import { mockSeries } from '../data/mockData'
-import { mockLists } from '../data/mockList'
-
-// 🔸 Her şey bu store'dan yönetilecek:
-// series  → dizi verileri (id, sezon, bölüm, poster vs.)
-// lists   → kullanıcı oluşturduğu yatay view'ler
-// downloads → indirilen bölümler
-// recentlyWatched → son izlenen bölümler
+import { create } from "zustand";
+import { persist, createJSONStorage } from "zustand/middleware";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import api from "../lib/api";
 
 export const useLibraryStore = create(
   persist(
     (set, get) => ({
       // --- STATE ---
-     series: mockSeries.series,
-
-    downloads: mockSeries.series.flatMap((serie) =>
-      serie.seasons.flatMap((season) =>
-        season.episodes
-          .filter((ep) => ep.downloaded)
-          .map((ep) => ({
-          serieId: serie.id,
-          episodeId: ep.id,
-          path: null, // istersen ileride dosya yolu eklersin
-          }))
-        )
-      ),
-      
-      lists: mockLists || [],
+      series: [],
+      lists: [],
+      downloads: [],
       recentlyWatched: [],
+      isLoading: false,
+      error: null,
 
-      // --- ACTIONS ---
+      // --- API ACTIONS ---
+      fetchSeries: async () => {
+  set({ isLoading: true, error: null });
+  try {
+    const res = await api.get("/media/async");
 
-      // ✅ Yeni liste oluştur (kullanıcı title ve seçtiği dizileri gönderir)
+    // 🔹 Her episode’a bulunduğu seasonId’yi ekle
+    const normalized = res.data.map((serie) => ({
+      ...serie,
+      seasons: serie.seasons.map((season) => ({
+        ...season,
+        episodes: season.episodes.map((ep) => ({
+          ...ep,
+          seasonId: season.id, // 💥 ekledik
+        })),
+      })),
+    }));
+
+    set({ series: normalized, isLoading: false });
+  } catch (err) {
+    console.error("fetchSeries error:", err);
+    set({
+      isLoading: false,
+      error:
+        err.response?.data?.message ||
+        "Series yüklenemedi. Lütfen bağlantıyı kontrol et.",
+    });
+  }
+},
+
+
+      // --- LOCAL ACTIONS ---
       addList: ({ title, seriesIds }) =>
         set((state) => ({
           lists: [
@@ -46,7 +58,6 @@ export const useLibraryStore = create(
           ],
         })),
 
-      // ✅ Listeye dizi ekle / çıkar (toggle)
       toggleSerieInList: (listId, serieId) =>
         set((state) => ({
           lists: state.lists.map((list) =>
@@ -61,14 +72,12 @@ export const useLibraryStore = create(
           ),
         })),
 
-      // ✅ Bir bölümü indirildi olarak işaretle (flag + downloads listesi senkron)
-      toggleDownload: (serieId, episodeId, filePath = '') =>
+      toggleDownload: (serieId, episodeId, filePath = "") =>
         set((state) => {
           const alreadyDownloaded = state.downloads.some(
             (d) => d.episodeId === episodeId
-          )
+          );
 
-          // Series içindeki episode flag'ini değiştir
           const updatedSeries = state.series.map((s) =>
             s.id === serieId
               ? {
@@ -83,20 +92,15 @@ export const useLibraryStore = create(
                   })),
                 }
               : s
-          )
+          );
 
-          // Downloads listesinde toggle
           const updatedDownloads = alreadyDownloaded
             ? state.downloads.filter((d) => d.episodeId !== episodeId)
-            : [
-                ...state.downloads,
-                { serieId, episodeId, path: filePath || null },
-              ]
+            : [...state.downloads, { serieId, episodeId, path: filePath || null }];
 
-          return { series: updatedSeries, downloads: updatedDownloads }
+          return { series: updatedSeries, downloads: updatedDownloads };
         }),
 
-      // ✅ İzlenme ilerlemesi
       markProgress: (serieId, episodeId, progress) =>
         set((state) => ({
           series: state.series.map((s) =>
@@ -114,8 +118,6 @@ export const useLibraryStore = create(
           ),
         })),
 
-      // ✅ Son izlenenler listesi
-      // store
       markRecentlyWatched: ({ serieId, episodeId }) =>
         set((s) => ({
           recentlyWatched: [
@@ -124,22 +126,24 @@ export const useLibraryStore = create(
           ].slice(0, 25),
         })),
 
-      // ✅ Her şeyi temizle (debug için)
       clearAll: () =>
         set({
+          series: [],
           lists: [],
           downloads: [],
           recentlyWatched: [],
         }),
     }),
     {
-      name: 'video-hub-storage',
+      name: "video-hub-storage",
       storage: createJSONStorage(() => AsyncStorage),
-      partialize:(state) =>({
-        lists:state.lists,
-        downloads:state.downloads,
-        recentlyWatched:state.recentlyWatched,
+      partialize: (state) => ({
+        series: state.series,
+        lists: state.lists,
+        downloads: state.downloads,
+        recentlyWatched: state.recentlyWatched,
       }),
+
     }
   )
-)
+);

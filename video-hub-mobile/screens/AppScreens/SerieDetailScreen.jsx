@@ -18,44 +18,63 @@ import { useLibraryStore } from "../../store/useLibraryStore";
 const { width, height } = Dimensions.get("window");
 
 export default function SerieDetailScreen() {
-  const FALLBACK_URI = 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4';  
   const insets = useSafeAreaInsets();
   const navigation = useNavigation();
   const route = useRoute();
   const { serieId } = route.params;
-  const { series,toggleDownload } = useLibraryStore();
+  const { series, toggleDownload } = useLibraryStore();
   const serie = series.find((s) => s.id === serieId);
+
+  // 📥 Bölüm indir
   const handleDownload = (serieId, episodeId) => {
-  toggleDownload(serieId, episodeId);
+    toggleDownload(serieId, episodeId);
   };
-  const handleEpisodePlay = (serieId, episodeId) => {
-  navigation.navigate("VideoPlayer", { serieId, episodeId });
-};
- const handlePlay = () => {
-  if (!serie) return;
-  const all = serie.seasons
-  .sort((a,b)=>a.order-b.order)
-  .flatMap(sea => sea.episodes.sort((a,b)=>a.order-b.order));
 
-const lastWatched = all.find(ep => ep.progress > 0 && ep.progress < 1);
-const nextUnwatched = all.find(ep => ep.progress === 0);
-const target = lastWatched || nextUnwatched || all[0];
-
-navigation.navigate('VideoPlayer', {
-  serieId: serie.id,
-  episodeId: target.id,
-  title: target.title,
-  videoUri: target.videoUri || FALLBACK_URI,
-});
+  const handleEpisodePlay = (serieId, episode) => {
+  console.log("🎬 Episode data:", episode);
+  navigation.navigate("VideoPlayer", {
+    serieId,
+    seasonId: episode.seasonId,
+    episodeId: episode.id,
+    title: episode.title,
+  });
 };
-if (!serie)
-  return (
-    <View style={styles.container}>
-      <Text style={{ color: '#fff', textAlign: 'center', marginTop: 40 }}>
-        Series not found
-      </Text>
-    </View>
-  );
+
+
+  // ▶️ Ana “Play” butonu (en son izlenen veya ilk bölümü başlat)
+  const handlePlay = () => {
+    if (!serie) return;
+
+    const allEpisodes = serie.seasons
+      .sort((a, b) => a.order - b.order)
+      .flatMap((sea) =>
+        sea.episodes
+          .sort((a, b) => a.order - b.order)
+          .map((ep) => ({ ...ep, seasonId: sea.id })) // 🔹 fallback
+      );
+
+    const lastWatched = allEpisodes.find(
+      (ep) => ep.progress > 0 && ep.progress < 1
+    );
+    const nextUnwatched = allEpisodes.find((ep) => ep.progress === 0);
+    const target = lastWatched || nextUnwatched || allEpisodes[0];
+
+    navigation.navigate("VideoPlayer", {
+      serieId: serie.id,
+      seasonId: target.seasonId,
+      episodeId: target.id,
+      title: target.title,
+    });
+  };
+
+  if (!serie)
+    return (
+      <View style={styles.container}>
+        <Text style={{ color: "#fff", textAlign: "center", marginTop: 40 }}>
+          Series not found
+        </Text>
+      </View>
+    );
 
   return (
     <View
@@ -71,11 +90,11 @@ if (!serie)
           style={styles.bgimage}
         />
       </View>
+
       <View style={[styles.infoContainer, { width: width }]}>
         <Text style={styles.title}>{serie?.title}</Text>
         <Text style={styles.description}>
-          {serie?.description ||
-            "No description available for this series."}
+          {serie?.description || "No description available for this series."}
         </Text>
 
         <View style={styles.buttonContainer}>
@@ -83,18 +102,20 @@ if (!serie)
             <Ionicons name="play-circle" size={20} color="#000000ff" />
             <Text style={styles.buttonText}>Play</Text>
           </TouchableOpacity>
-            {/*
-          <TouchableOpacity style={styles.buttonDownload} onPress={handleDownload}>
-            <Ionicons name="download" size={20} color="#000000ff" />
-            <Text style={styles.buttonText}>Download</Text>
-          </TouchableOpacity>
-          */}
         </View>
-        
       </View>
+
       <View style={styles.bottomContainer}>
-        <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 80 }}>
-          <EpisodeAccordion seasons={serie?.seasons || []} serieId={serie.id} onDownload={handleDownload}onPlay={handleEpisodePlay}/>
+        <ScrollView
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 80 }}
+        >
+          <EpisodeAccordion
+            seasons={serie?.seasons || []}
+            serieId={serie.id}
+            onDownload={handleDownload}
+            onPlay={handleEpisodePlay}
+          />
         </ScrollView>
       </View>
 
@@ -136,20 +157,11 @@ const styles = StyleSheet.create({
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "space-between",
+    justifyContent: "center",
     width: width * 0.9,
     marginTop: 10,
   },
   buttonPlay: {
-    flexDirection: "row",
-    width: "48%",
-    height: height * 0.05,
-    backgroundColor: "#C6A14A",
-    borderRadius: width * 0.03,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  buttonDownload: {
     flexDirection: "row",
     width: "48%",
     height: height * 0.05,

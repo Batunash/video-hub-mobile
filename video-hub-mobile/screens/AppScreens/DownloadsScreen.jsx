@@ -27,9 +27,9 @@ export default function DownloadsScreen() {
   const handlePlay = (serieId, episode) => {
     navigation.navigate("VideoPlayer", {
       serieId,
+      seasonId: episode.seasonId,  // 💥 backend için gerekli
       episodeId: episode.id,
       title: episode.title,
-      videoUri: episode.videoUri || "https://example.com/sample.mp4",
     });
   };
 

@@ -33,7 +33,7 @@ export default function EpisodeGroup({
             </View>
 
             {/* Play */}
-            <TouchableOpacity onPress={() => onPlay(serieId, episode.id)}>
+            <TouchableOpacity onPress={() => onPlay(serieId, episode)}>
               <Ionicons name="play-circle" size={24} color="#C6A14A" />
             </TouchableOpacity>
 

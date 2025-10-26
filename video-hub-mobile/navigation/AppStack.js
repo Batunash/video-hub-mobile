@@ -10,7 +10,7 @@ import CreateHorizontalViewScreen from '../screens/AppScreens/CreateHorizontalVi
 import VideoPlayer from '../screens/AppScreens/VideoPlayer';
 const Stack = createNativeStackNavigator();
 
-export default function AuthStack() {
+export default function AppStack() {
   return (
     <Stack.Navigator
       initialRouteName="Main"
