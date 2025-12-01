@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import {
   View,
   Image,
@@ -16,6 +16,7 @@ import Footer from "../../components/Footer";
 import EpisodeAccordion from "../../components/EpisodeAccordion";
 import { useLibraryStore } from "../../store/useLibraryStore";
 import { useTranslation } from "react-i18next";
+
 const { width, height } = Dimensions.get("window");
 
 export default function SerieDetailScreen() {
@@ -24,38 +25,71 @@ export default function SerieDetailScreen() {
   const navigation = useNavigation();
   const route = useRoute();
   const { serieId } = route.params;
-  const { series, downloadEpisode, downloads } = useLibraryStore();
+  const { series, downloadEpisode, removeDownload, downloads } = useLibraryStore();
   const serie = series.find((s) => s.id === serieId);
-  const downloadedIds = downloads
-    .filter((d) => d.serieId === serieId)
-    .map((d) => d.episodeId);
+  const movieData = useMemo(() => {
+    if (!serie || !serie.seasons) return null;
+    if (serie.seasons.length === 1 && serie.seasons[0].episodes.length === 1) {
+        return {
+            seasonId: serie.seasons[0].id,
+            episode: serie.seasons[0].episodes[0]
+        };
+    }
+    return null;
+  }, [serie]);
+
+  const isMovie = !!movieData;
 
   const handleDownload = async (serieId, episodeId) => {
-    if (downloadedIds.includes(episodeId)) {
-        Alert.alert(t('detail.download_exists_title'), t('detail.download_exists_msg'));
+    const isAlreadyDownloaded = downloads.some(
+        d => d.serieId == serieId && d.episodeId == episodeId
+    );
+
+    if (isAlreadyDownloaded) {
+        Alert.alert(t('detail.download_exists_title') || "Bilgi", t('detail.download_exists_msg') || "Zaten indirilmiş.");
         return;
     }
 
     try {
       await downloadEpisode(serieId, episodeId);
-      Alert.alert(t('detail.download_success_title'), t('detail.download_success_msg'));
+      Alert.alert(t('detail.download_success_title') || "Başarılı", t('detail.download_success_msg') || "İndirme tamamlandı.");
     } catch (e) {
-      Alert.alert(t('detail.download_fail_title'), e.message || t('detail.download_fail_msg'));
+      Alert.alert(t('detail.download_fail_title') || "Hata", e.message || t('detail.download_fail_msg') || "İndirme başarısız.");
     }
+  };
+
+  const handleDelete = (episodeId, title) => {
+      Alert.alert(
+          t('common.warning') || "Silme İşlemi",
+          `"${title || 'Bu bölümü'}" silmek istediğinize emin misiniz?`,
+          [
+              { text: t('common.cancel') || "Vazgeç", style: "cancel" },
+              { 
+                  text: t('common.delete') || "Sil", 
+                  style: "destructive", 
+                  onPress: async () => {
+                      await removeDownload(episodeId);
+                  }
+              }
+          ]
+      );
   };
 
   const handleEpisodePlay = (serieId, episode) => {
     navigation.navigate("VideoPlayer", {
       serieId,
-      seasonId: episode.seasonId,
+      seasonId: episode.seasonId || movieData?.seasonId,
       episodeId: episode.id,
       title: episode.title,
     });
   };
 
-  const handlePlay = () => {
+  const handlePlayMain = () => {
     if (!serie) return;
-
+    if (isMovie) {
+        handleEpisodePlay(serie.id, movieData.episode);
+        return;
+    }
     const allEpisodes = serie.seasons
       .sort((a, b) => a.order - b.order)
       .flatMap((sea) =>
@@ -81,7 +115,7 @@ export default function SerieDetailScreen() {
     return (
       <View style={styles.container}>
         <Text style={{ color: "#fff", textAlign: "center", marginTop: 40 }}>
-          {t('detail.not_found')}
+          {t('detail.not_found') || "İçerik bulunamadı."}
         </Text>
       </View>
     );
@@ -95,39 +129,47 @@ export default function SerieDetailScreen() {
     >
       <View style={[styles.imageContainer, { width: width }]}>
         <Image
-          source={{ uri: serie?.poster }}
+          source={{ uri: serie?.localPoster || serie?.poster }}
           resizeMode="cover"
           style={styles.bgimage}
         />
+        <TouchableOpacity 
+            style={styles.backButton} 
+            onPress={() => navigation.goBack()}
+        >
+            <Ionicons name="arrow-back" size={28} color="white" />
+        </TouchableOpacity>
       </View>
 
       <View style={[styles.infoContainer, { width: width }]}>
         <Text style={styles.title}>{serie?.title}</Text>
-        <Text style={styles.description}>
-          {serie?.description || t('detail.description_missing')}
+        <Text style={styles.description} numberOfLines={4}>
+          {serie?.description || t('detail.description_missing') || "Açıklama yok."}
         </Text>
 
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.buttonPlay} onPress={handlePlay}>
-            <Ionicons name="play-circle" size={20} color="#000000ff" />
-            <Text style={styles.buttonText}>{t('detail.play')}</Text>
+          <TouchableOpacity 
+            style={styles.buttonPlay} 
+            onPress={handlePlayMain}
+          >
+            <Ionicons name="play-circle" size={22} color="#000" />
+            <Text style={styles.buttonText}>{t('detail.play') || "Oynat"}</Text>
           </TouchableOpacity>
         </View>
       </View>
-
       <View style={styles.bottomContainer}>
-        <ScrollView
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 80 }}
-        >
+          <ScrollView
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 80 }}
+          >
           <EpisodeAccordion
-            seasons={serie?.seasons || []}
-            serieId={serie.id}
-            onDownload={handleDownload}
-            onPlay={handleEpisodePlay}
-            downloadedIds={downloadedIds} 
+              seasons={serie?.seasons || []}
+              serieId={serie.id}
+              onDownload={handleDownload}
+              onDelete={handleDelete}
+              onPlay={handleEpisodePlay}
           />
-        </ScrollView>
+          </ScrollView>
       </View>
 
       <Footer />
@@ -137,55 +179,66 @@ export default function SerieDetailScreen() {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: "#121212" },
-  imageContainer: { flex: 1 },
+  imageContainer: { flex: 1, position: 'relative' },
+  backButton: {
+      position: 'absolute',
+      top: 10,
+      left: 10,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      borderRadius: 20,
+      padding: 8,
+      zIndex: 10
+  },
   bgimage: { height: "100%", width: "100%" },
   infoContainer: {
     width: "100%",
     backgroundColor: "#1A1A1A",
-    paddingHorizontal: 10,
-    paddingVertical: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
     alignItems: "center",
     justifyContent: "flex-start",
-    gap: 10,
-    borderTopLeftRadius: 15,
-    borderTopRightRadius: 15,
-    marginTop: -20,
+    borderTopLeftRadius: 20,
+    borderTopRightRadius: 20,
+    marginTop: -30,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -5 },
+    shadowOpacity: 0.3,
+    shadowRadius: 5,
+    elevation: 10
   },
   title: {
     color: "white",
     fontWeight: "bold",
-    fontSize: width * 0.05,
+    fontSize: 24,
     textAlign: "center",
+    marginBottom: 8
   },
   description: {
     color: "#ccc",
-    fontSize: width * 0.035,
+    fontSize: 14,
     textAlign: "center",
-    marginTop: 5,
-    marginBottom: 10,
-    lineHeight: 18,
-    width: width * 0.9,
+    marginBottom: 20,
+    lineHeight: 20,
   },
   buttonContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    width: width * 0.9,
-    marginTop: 10,
+    justifyContent: "center", 
+    width: "100%",
+    marginBottom: 10,
   },
   buttonPlay: {
     flexDirection: "row",
-    width: "48%",
-    height: height * 0.05,
+    width: "100%", 
+    height: 50,
     backgroundColor: "#C6A14A",
-    borderRadius: width * 0.03,
+    borderRadius: 12,
     alignItems: "center",
     justifyContent: "center",
   },
   buttonText: {
-    color: "white",
     fontWeight: "bold",
-    marginLeft: 5,
-    fontSize: width * 0.04,
+    marginLeft: 8,
+    fontSize: 16,
   },
   bottomContainer: {
     flex: 1,

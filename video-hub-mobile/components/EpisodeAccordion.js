@@ -1,12 +1,10 @@
 import React, { useState } from "react";
 import { View, Text, StyleSheet } from "react-native";
 import EpisodeGroup from "./EpisodeGroup";
-import { useTranslation } from "react-i18next"; 
-
-export default function EpisodeAccordion({ seasons, serieId, onDownload, onPlay, downloadedIds }) {
-  const { t } = useTranslation(); 
+import { useTranslation } from "react-i18next";
+export default function EpisodeAccordion({ seasons, serieId, onDownload, onDelete, onPlay }) {
   const [expandedId, setExpandedId] = useState(null);
-
+  const { t } = useTranslation();
   const handleToggle = (id) => {
     setExpandedId(expandedId === id ? null : id);
   };
@@ -23,13 +21,14 @@ export default function EpisodeAccordion({ seasons, serieId, onDownload, onPlay,
           isExpanded={expandedId === season.id}
           onToggle={() => handleToggle(season.id)}
           onDownload={onDownload} 
-          onPlay={onPlay}
-          downloadedIds={downloadedIds} 
+          onDelete={onDelete} 
+          onPlay={onPlay} 
         />
       ))}
     </View>
   );
 }
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,

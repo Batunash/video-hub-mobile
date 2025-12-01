@@ -1,9 +1,9 @@
 import { create } from "zustand";
 import { persist, createJSONStorage } from "zustand/middleware";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { downloadEpisodeService } from "../services/downloadService";
+import { downloadEpisodeService ,removeEpisodeService,downloadImageService} from "../services/downloadService";
 import api from "../lib/api";
-import i18n from "../i18n";
+import i18n from "../services/i18n";
 
 export const useLibraryStore = create(
   persist(
@@ -18,25 +18,41 @@ export const useLibraryStore = create(
       progress: 0,
 
       fetchSeries: async () => {
-        set({ isLoading: true });
+        set({ isLoading: true, error: null });
         try {
           const res = await api.get("/series");
-          set({ series: res.data.series, isLoading: false });
+          let seriesData = res.data.series;
+          
+          const { series: currentSeries } = get();
+          
+          seriesData = seriesData.map(newS => {
+              const existing = currentSeries.find(oldS => String(oldS.id) === String(newS.id));
+              return existing && existing.localPoster 
+                ? { ...newS, localPoster: existing.localPoster } 
+                : newS;
+          });
+
+          set({ series: seriesData, isLoading: false, error: null });
+
+          seriesData.forEach(async (serie) => {
+              if (serie.poster && !serie.localPoster) {
+                  const localPath = await downloadImageService(serie.poster, serie.id);
+                  
+                  if (localPath) {
+                      set(state => ({
+                          series: state.series.map(s => 
+                              String(s.id) === String(serie.id) 
+                                  ? { ...s, localPoster: localPath } 
+                                  : s
+                          )
+                      }));
+                  }
+              }
+          });
+
         } catch (err) {
           set({ isLoading: false, error: i18n.t("player.connection_error") });
         }
-      },
-      addList: ({ title, seriesIds }) => {
-        set((state) => ({
-          lists: [
-            ...state.lists,
-            {
-              id: Date.now().toString(), 
-              title,
-              seriesIds,
-            },
-          ],
-        }));
       },
 
       downloadEpisode: async (serieId, episodeId) => {
@@ -68,6 +84,16 @@ export const useLibraryStore = create(
           set({ isDownloading: false, error: i18n.t("detail.download_fail_msg") });
           throw err;
         }
+      },
+      removeDownload: async (episodeId) => {
+        const { downloads } = get();
+        const target = downloads.find(d => String(d.episodeId) === String(episodeId));        
+        if (target && target.localPath) {
+            await removeEpisodeService(target.localPath);
+        }        
+        set((state) => ({
+            downloads: state.downloads.filter((d) => String(d.episodeId) !== String(episodeId)),
+        }));
       },
       markProgress: (serieId, episodeId, progress) =>
         set((state) => ({

@@ -1,17 +1,20 @@
 import React from "react";
 import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-
+import { useLibraryStore } from "../store/useLibraryStore"; 
 export default function EpisodeGroup({ 
   title, 
   episodes, 
   isExpanded, 
   onToggle, 
   onDownload, 
+  onDelete, 
   onPlay, 
-  serieId,
-  downloadedIds = [] 
+  serieId
 }) {
+  
+  const { downloads } = useLibraryStore();
+
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={onToggle} style={styles.headerRow}>
@@ -23,8 +26,11 @@ export default function EpisodeGroup({
         />
       </TouchableOpacity>
       {isExpanded &&
-        episodes.map((episode) => {
-          const isDownloaded = downloadedIds.includes(episode.id);
+       episodes.map((episode) => {
+          const isDownloaded = downloads.some(d => 
+            String(d.serieId) === String(serieId) && 
+            String(d.episodeId) === String(episode.id)
+          );
 
           return (
             <View key={episode.id} style={styles.episodeRow}>
@@ -33,15 +39,20 @@ export default function EpisodeGroup({
                 <Text style={styles.duration}>{episode.duration}</Text>
               </View>
               
-              <TouchableOpacity onPress={() => onPlay(serieId, episode)}>
-                <Ionicons name="play-circle" size={24} color="#C6A14A" />
-              </TouchableOpacity>
-              
-              <TouchableOpacity onPress={() => onDownload(serieId, episode.id)}>
+              <TouchableOpacity onPress={() => onPlay(serieId, episode)} style={{marginRight: 15}}>
+                <Ionicons name="play-circle" size={28} color="#C6A14A" />
+              </TouchableOpacity>              
+              <TouchableOpacity 
+                onPress={() => isDownloaded 
+                    ? onDelete(episode.id, episode.title) 
+                    : onDownload(serieId, episode.id)
+                }
+                style={{ padding: 5 }}
+              >
                 <Ionicons
-                  name={isDownloaded ? "checkmark-circle" : "download-outline"}
+                  name={isDownloaded ? "trash-outline" : "download-outline"}
                   size={24}
-                  color={isDownloaded ? "#4CAF50" : "#C6A14A"}
+                  color={isDownloaded ? "#ef4444" : "#C6A14A"}
                 />
               </TouchableOpacity>
             </View>
@@ -74,14 +85,16 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     borderBottomWidth: 0.5,
     borderBottomColor: "#333",
-    paddingVertical: 8,
+    paddingVertical: 12,
   },
   episodeTitle: {
     color: "#fff",
     fontSize: 14,
+    fontWeight: "500"
   },
   duration: {
     color: "#999",
     fontSize: 12,
+    marginTop: 2
   },
 });

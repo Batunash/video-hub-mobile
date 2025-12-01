@@ -9,7 +9,11 @@ export default function HeroSection({data, onComponentPress, onPlayPress}){
     const logosize = width*0.20;
     return(
         <TouchableOpacity style={[styles.container, { height: height * 0.33 }]} onPress={onComponentPress}>
-              <ImageBackground source={{uri: data?.poster}} resizeMode="cover" style={styles.bgimage}>
+             <ImageBackground 
+                  source={{uri: data?.localPoster || data?.poster}} 
+                  resizeMode="cover" 
+                  style={styles.bgimage}
+              >
                   <View style={styles.overlay} />
                       <Image source={require('../assets/logo.png')} style={[styles.logo,{width: logosize, height: logosize}]} />
                   <View style={styles.content}>

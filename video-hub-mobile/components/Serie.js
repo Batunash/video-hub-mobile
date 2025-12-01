@@ -23,7 +23,7 @@ export default function Serie({ serie, onSeriePress, onPlayPress, showDownloaded
   return (
     <View style={styles.container}>
       <TouchableOpacity onPress={() => onSeriePress?.(serie.id)}>
-        <Image source={{ uri: serie.poster }} style={styles.image} />
+        <Image source={{ uri: serie.localPoster || serie.poster }} style={styles.image} />
       </TouchableOpacity>
 
       <View style={styles.info}>

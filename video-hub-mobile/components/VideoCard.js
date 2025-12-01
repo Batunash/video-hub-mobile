@@ -14,7 +14,7 @@ export default function VideoCard({ Height, isSelected, onPress, data }) {
       onPress={onPress}
     >
       <Image
-        source={{ uri: data?.poster }}
+        source={{ uri: data?.localPoster || data?.poster }}
         resizeMode="cover"
         style={styles.image}
       />
@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
   },
   image: {
     width: "100%",
-    height: "85%",
+    height: "100%",
     borderTopLeftRadius: 10,
     borderTopRightRadius: 10,
   },

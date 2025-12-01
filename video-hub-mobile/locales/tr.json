@@ -29,7 +29,7 @@
     "empty_fields_error": "Lütfen e-posta ve şifrenizi girin."
   },
   "connection": {
-    "title": "Video Hub'a Bağlan",
+    "title": "Zenith Stream Desktop'a Bağlan",
     "instruction": "Masaüstü uygulamanızdaki \"Ayarlar\" menüsünde bulunan QR kodu taratın.",
     "scan_btn": "📷 QR Kodu Tara",
     "manual_label": "Manuel IP Adresi Girin:",

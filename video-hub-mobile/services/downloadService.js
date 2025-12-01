@@ -40,3 +40,41 @@ export const downloadEpisodeService = async (serieId, episodeId) => {
     throw err; 
   }
 };
+export const removeEpisodeService = async (localPath) => {
+    try {
+        if (!localPath) return;
+        const fileToDelete = new File(localPath);
+
+        if (fileToDelete.exists) {
+            console.log("Fiziksel dosya siliniyor:", localPath);
+            fileToDelete.delete(); 
+        } else {
+            console.log("Dosya zaten yok, sadece listeden silinecek.");
+        }
+    } catch (error) {
+        console.error("Servis Silme Hatası:", error);
+    }
+};
+export const downloadImageService = async (remoteUrl, serieId) => {
+    try {
+        if (!remoteUrl) return null;
+        const extension = remoteUrl.split('.').pop().split('?')[0] || 'jpg'; 
+        const fileName = `poster_${serieId}.${extension}`;
+        const destinationFile = new File(Paths.document, fileName);
+        if (destinationFile.exists) {
+            console.log("Poster zaten var:", destinationFile.uri);
+            return destinationFile.uri;
+        }
+        console.log("Poster indiriliyor...", remoteUrl);
+        const result = await File.downloadFileAsync(remoteUrl, destinationFile);
+        
+        if (result.exists) {
+            return result.uri;
+        }
+        return null;
+
+    } catch (error) {
+        console.error("Poster indirme hatası:", error);
+        return null; 
+    }
+};

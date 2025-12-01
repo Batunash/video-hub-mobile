@@ -1,29 +1,35 @@
 {
   "expo": {
-    "name": "video-hub-mobile",
-    "slug": "video-hub-mobile",
+    "name": "Zenith Stream",
+    "slug": "zenith-stream",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo.png",
-    "userInterfaceStyle": "light",
+    
+    "icon": "./assets/icon.png", 
+    
+    "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/logo.png",
+      "image": "./assets/logo.png", 
       "resizeMode": "contain",
-      "backgroundColor": "#ffffff"
+      "backgroundColor": "#121212"
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.videohubmobile"
+      "bundleIdentifier": "com.batunash.zenithstream",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/adaptive-icon.png", 
+        "backgroundColor": "#121212"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.videohubmobile",
+      "package": "com.batunash.zenithstream",
       "permissions": [
-        "android.permission.CAMERA"
+        "android.permission.INTERNET",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
       ]
     },
     "web": {},
