@@ -7,7 +7,7 @@ Watch your movie and series library directly from your computer on your mobile d
 
 ## 🖥️ Requirement: Desktop Server Application
 
-This mobile app requires the **Zenith Stream Desktop** application to be running on your computer.
+This mobile app requires the **Zenith Stream Desktop:https://github.com/Batunash/Zenith-Stream-Desktop ** application to be running on your computer.
 
 👉 **Download the Server App here:** *Zenith Stream Desktop Repository*
 
